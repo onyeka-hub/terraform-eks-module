@@ -5,29 +5,6 @@ provider "aws" {
   region = var.region
 }
 
-# ############# Data Sources #############
-# ########################################
-data "aws_eks_cluster" "default" {
-  name = module.eks.cluster_name
-}
-
-data "aws_eks_cluster_auth" "default" {
-  name = module.eks.cluster_name
-}
-
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.default.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.default.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.default.token
-}
-
-############# Encryption key #############
-########################################
-resource "aws_kms_key" "eks_cluster_key" {
-  description = "onyeka EKS Secret Encryption Key"
-}
-
-
 ################################################################################
 # vpc module: this is aws vpc module that will create a vpc with its associate resources 
 #like subnets, internet and nat gateway, route tables, etc
@@ -35,15 +12,14 @@ resource "aws_kms_key" "eks_cluster_key" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name            = var.name
-  cidr            = var.vpc_cidr
-  azs             = ["us-east-2a", "us-east-2b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
+  name                   = var.name
+  cidr                   = var.vpc_cidr
+  azs                    = ["us-east-2a", "us-east-2b"]
+  public_subnets         = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets        = ["10.0.3.0/24", "10.0.4.0/24"]
   enable_nat_gateway     = true
   single_nat_gateway     = true
   one_nat_gateway_per_az = false
-  # create_igw             = false
 
   tags = {
     Terraform   = "true"
@@ -67,7 +43,7 @@ module "eks" {
   version = "~> 19.0"
 
   cluster_name    = var.cluster_name
-  cluster_version = "1.24"
+  cluster_version = "1.27"
 
   cluster_endpoint_public_access = true
 
@@ -83,14 +59,8 @@ module "eks" {
     }
   }
 
-  cluster_encryption_config = {
-    provider_key_arn = "aws_kms_key.eks_cluster_key.arn"
-    resources        = ["secrets"]
-  }
-
   vpc_id     = module.vpc.vpc_id
   subnet_ids = [module.vpc.private_subnets[0], module.vpc.private_subnets[1]]
-  # control_plane_subnet_ids = [module.vpc.private_subnets[0], module.vpc.private_subnets[1]]
 
   # Self Managed Node Group(s)
   # self_managed_node_group_defaults = {
@@ -143,20 +113,20 @@ module "eks" {
       use_custom_launch_template = false
       disk_size                  = 500
 
-      instance_types = ["t2.medium"]
+      instance_types = ["t2.medium", "t3.large"]
       capacity_type  = "SPOT"
     }
-    # green = {
-    #   min_size     = 1
-    #   max_size     = 10
-    #   desired_size = 1
+    green = {
+      min_size     = 1
+      max_size     = 10
+      desired_size = 1
 
-    #   use_custom_launch_template = false
-    #   disk_size                  = 500
+      use_custom_launch_template = false
+      disk_size                  = 500
 
-    #   instance_types = ["t2.medium"]
-    #   capacity_type  = "SPOT"
-    # }
+      instance_types = ["t3.large"]
+      capacity_type  = "SPOT"
+    }
   }
 
   # Fargate Profile(s)
@@ -173,22 +143,28 @@ module "eks" {
 
   # aws-auth configmap
   manage_aws_auth_configmap = true
-  # create_aws_auth_configmap = true
 
   aws_auth_roles = [
     {
-      rolearn  = "arn:aws:iam::958217526797:role/s3_Admin_access"
+      rolearn  = "arn:aws:iam::255913473442:role/s3_Admin_access"
       username = "LambdaToS3"
       groups   = ["system:masters"]
     },
+
+    # {
+    #   rolearn  = module.eks_admins_iam_role.iam_role_arn
+    #   username = module.eks_admins_iam_role.iam_role_name
+    #   groups   = ["system:masters"]
+    # },
   ]
 
   aws_auth_users = [
     {
-      userarn  = "arn:aws:iam::958217526797:user/onyeka"
-      username = "onyeka"
+      userarn  = "arn:aws:iam::255913473442:user/onyi"
+      username = "onyi"
       groups   = ["system:masters"]
     },
+
     #     {
     #       userarn  = "arn:aws:iam::66666666666:user/user2"
     #       username = "user2"
@@ -208,11 +184,27 @@ module "eks" {
   }
 }
 
+# ############# Data Sources #############
+# ########################################
+data "aws_eks_cluster" "default" {
+  name = module.eks.cluster_name
+}
+
+data "aws_eks_cluster_auth" "default" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.default.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.default.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.default.token
+}
+
 
 ################################################################################
 # Route53 resource  
 ################################################################################
 
 resource "aws_route53_zone" "primary" {
-  name = "onyeka.ga"
+  name = "onyekaonu.site"
 }
