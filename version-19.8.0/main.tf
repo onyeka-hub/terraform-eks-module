@@ -1,3 +1,23 @@
+# VPC module
+# KMS module
+# Kubernetes components - https://kubernetes.io/docs/concepts/overview/components/#:~:text=kube%2Dproxy%20is%20a%20network,or%20outside%20of%20your%20cluster.
+# Add-ons
+# coredns - https://docs.aws.amazon.com/eks/latest/userguide/managing-coredns.html
+# vpc-cni - https://docs.amazonaws.cn/en_us/eks/latest/userguide/cni-iam-role.html
+# Node Groups & Fargate configuration 
+# Taints and tolerations are a mechanism that allows you to ensure that pods are not placed on inappropriate nodes. Taints are added to nodes, while tolerations are defined in the pod specification
+# For example, most Kubernetes distributions will automatically taint the master nodes so that one of the pods that manages the control plane is scheduled onto them and not any other data plane pods deployed by users
+# kubectl taint nodes nodename activeEnv=green:NoSchedule
+# tolerations:
+# - effect: NoSchedule
+#   key: activeEnv
+#   operator: Equal
+#   value: green
+# Update kubeconfig to connect to the EKS cluster
+# aws eks update-kubeconfig --name cluster-name --region us-east-2 --kubeconfig ~/.kube/config
+# kubectl config get-contexts 
+# kubectl config use-context arn:aws:eks:eu-west-2:832611670348:cluster/masterclass-cluster
+
 ############# Provider & Backend #############
 ########################################
 
@@ -35,11 +55,11 @@ resource "aws_kms_key" "eks_cluster_key" {
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
 
-  name            = var.name
-  cidr            = var.vpc_cidr
-  azs             = ["us-east-2a", "us-east-2b"]
-  public_subnets  = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets = ["10.0.3.0/24", "10.0.4.0/24"]
+  name                   = var.name
+  cidr                   = var.vpc_cidr
+  azs                    = ["us-east-2a", "us-east-2b"]
+  public_subnets         = ["10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets        = ["10.0.3.0/24", "10.0.4.0/24"]
   enable_nat_gateway     = true
   single_nat_gateway     = true
   one_nat_gateway_per_az = false
@@ -49,6 +69,7 @@ module "vpc" {
     Terraform   = "true"
     Environment = "dev"
   }
+
   vpc_tags                 = var.vpc_tags
   public_route_table_tags  = var.public_route_table_tags
   private_route_table_tags = var.private_route_table_tags
@@ -146,17 +167,17 @@ module "eks" {
       instance_types = ["t2.medium"]
       capacity_type  = "SPOT"
     }
-    # green = {
-    #   min_size     = 1
-    #   max_size     = 10
-    #   desired_size = 1
+    green = {
+      min_size     = 1
+      max_size     = 10
+      desired_size = 1
 
-    #   use_custom_launch_template = false
-    #   disk_size                  = 500
+      use_custom_launch_template = false
+      disk_size                  = 500
 
-    #   instance_types = ["t2.medium"]
-    #   capacity_type  = "SPOT"
-    # }
+      instance_types = ["t2.medium"]
+      capacity_type  = "SPOT"
+    }
   }
 
   # Fargate Profile(s)
@@ -175,18 +196,18 @@ module "eks" {
   manage_aws_auth_configmap = true
   # create_aws_auth_configmap = true
 
-  aws_auth_roles = [
-    {
-      rolearn  = "arn:aws:iam::958217526797:role/s3_Admin_access"
-      username = "LambdaToS3"
-      groups   = ["system:masters"]
-    },
-  ]
+  # aws_auth_roles = [
+  #   {
+  #     rolearn  = "arn:aws:iam::958217526797:role/s3_Admin_access"
+  #     username = "LambdaToS3"
+  #     groups   = ["system:masters"]
+  #   },
+  # ]
 
   aws_auth_users = [
     {
-      userarn  = "arn:aws:iam::958217526797:user/onyeka"
-      username = "onyeka"
+      userarn  = "arn:aws:iam::938106001005:user/github-action-afxtern-pod-a"
+      username = "github-action-afxtern-pod-a"
       groups   = ["system:masters"]
     },
     #     {
@@ -208,11 +229,10 @@ module "eks" {
   }
 }
 
-
 ################################################################################
 # Route53 resource  
 ################################################################################
 
 resource "aws_route53_zone" "primary" {
-  name = "onyeka.ga"
+  name = "onyekaonu.site"
 }

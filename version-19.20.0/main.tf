@@ -34,6 +34,23 @@ module "vpc" {
   private_subnet_names     = var.private_subnet_names
 }
 
+# ############# Data Sources #############
+# ########################################
+data "aws_eks_cluster" "default" {
+  name = module.eks.cluster_name
+}
+
+data "aws_eks_cluster_auth" "default" {
+  name = module.eks.cluster_name
+}
+
+provider "kubernetes" {
+  host                   = data.aws_eks_cluster.default.endpoint
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.default.certificate_authority[0].data)
+  token                  = data.aws_eks_cluster_auth.default.token
+}
+
+
 
 ################################################################################
 # eks module: this is aws eks module that will create an eks with its associate resources 
@@ -145,23 +162,23 @@ module "eks" {
   manage_aws_auth_configmap = true
 
   aws_auth_roles = [
-    {
-      rolearn  = "arn:aws:iam::255913473442:role/s3_Admin_access"
-      username = "LambdaToS3"
-      groups   = ["system:masters"]
-    },
-
     # {
-    #   rolearn  = module.eks_admins_iam_role.iam_role_arn
-    #   username = module.eks_admins_iam_role.iam_role_name
+    #   rolearn  = "arn:aws:iam::255913473442:role/s3_Admin_access"
+    #   username = "LambdaToS3"
     #   groups   = ["system:masters"]
     # },
+
+    {
+      rolearn  = module.eks_admins_iam_role.iam_role_arn
+      username = module.eks_admins_iam_role.iam_role_name
+      groups   = ["system:masters"]
+    },
   ]
 
   aws_auth_users = [
     {
-      userarn  = "arn:aws:iam::255913473442:user/onyi"
-      username = "onyi"
+      userarn  = "arn:aws:iam::938106001005:user/github-action-afxtern-pod-a"
+      username = "github-action-afxtern-pod-a"
       groups   = ["system:masters"]
     },
 
@@ -184,27 +201,10 @@ module "eks" {
   }
 }
 
-# ############# Data Sources #############
-# ########################################
-data "aws_eks_cluster" "default" {
-  name = module.eks.cluster_name
-}
-
-data "aws_eks_cluster_auth" "default" {
-  name = module.eks.cluster_name
-}
-
-provider "kubernetes" {
-  host                   = data.aws_eks_cluster.default.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.default.certificate_authority[0].data)
-  token                  = data.aws_eks_cluster_auth.default.token
-}
-
-
 ################################################################################
 # Route53 resource  
 ################################################################################
 
-resource "aws_route53_zone" "primary" {
-  name = "onyekaonu.site"
-}
+# resource "aws_route53_zone" "primary" {
+#   name = "onyekaonu.site"
+# }

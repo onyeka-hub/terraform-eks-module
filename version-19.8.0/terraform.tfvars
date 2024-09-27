@@ -3,32 +3,32 @@
 ################################################################################
 region = "us-east-2"
 
-name = "onyi"
+name = "onyeka"
 
 vpc_cidr = "10.0.0.0/16"
 
 vpc_tags = {
-  Name = "onyi-vpc"
+  Name = "onyeka-vpc"
 }
 
 public_route_table_tags = {
-  Name = "onyi-public-route-table"
+  Name = "onyeka-public-route-table"
 }
 
 private_route_table_tags = {
-  Name = "onyi-private-route-table"
+  Name = "onyeka-private-route-table"
 }
 
 nat_gateway_tags = {
-  Name = "onyi-nat-gateway"
+  Name = "onyeka-nat-gateway"
 }
 
 nat_eip_tags = {
-  Name = "onyi-elastic-ip"
+  Name = "onyeka-elastic-ip"
 }
 
-public_subnet_names = ["onyi-public-subnet-1", "onyi-public-subnet-2"]
+public_subnet_names = ["onyeka-public-subnet-1", "onyeka-public-subnet-2"]
 
-private_subnet_names = ["onyi-private-subnet-1", "onyi-private-subnet-2"]
+private_subnet_names = ["onyeka-private-subnet-1", "onyeka-private-subnet-2"]
 
 

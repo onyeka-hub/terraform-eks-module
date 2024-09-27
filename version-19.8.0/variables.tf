@@ -9,7 +9,7 @@ variable "region" {
 
 variable "name" {
   type    = string
-  default = "onyi"
+  default = "onyeka"
 }
 
 variable "vpc_cidr" {
@@ -39,7 +39,6 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
-
 
 variable "cluster_name" {
   default = "onyeka-eks-19-8-0"
