@@ -125,18 +125,18 @@ module "eks" {
     blue = {
       min_size     = 1
       max_size     = 10
-      desired_size = 1
+      desired_size = 2
 
       use_custom_launch_template = false
       disk_size                  = 500
 
-      instance_types = ["t2.medium", "t3.large"]
+      instance_types = ["t3.large"]
       capacity_type  = "SPOT"
     }
     green = {
       min_size     = 1
       max_size     = 10
-      desired_size = 1
+      desired_size = 2
 
       use_custom_launch_template = false
       disk_size                  = 500
